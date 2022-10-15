@@ -1,0 +1,327 @@
+---
+title: "Intro to Bayesian (Linear Models) for Speech and Language Scientists"
+subtitle: "Day 1"
+output: 
+  html_document: 
+    number_sections: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, out.height = "400px", dpi = 300,
+  fig.align = "center", fig.width = 7, fig.height = 5
+)
+knitr::opts_knit$set(root.dir = here::here())
+
+library(tidyverse)
+theme_set(theme_light())
+
+library(lme4)
+library(ggeffects)
+library(brms)
+library(cmdstanr)
+library(tidybayes)
+library(bayesplot)
+```
+
+# Read the data
+
+```{r mald}
+mald <- readRDS("./data/mald.rds")
+```
+
+[Massive Auditory Lexical Decision](https://aphl.artsrn.ualberta.ca/?page_id=827) (Tucker et al. 2019):
+
+- **MALD data set**: 521 subjects, RTs and accuracy.
+
+- Subset of MALD: 30 subjects, 100 observations each.
+
+```{r mald-print}
+mald
+```
+
+
+
+# A frequentist linear model
+
+```{r lm-1}
+lm_1 <- lmer(
+  log(RT) ~
+    PhonLev +
+    IsWord +
+    PhonLev:IsWord +
+    (1 | Subject),
+  data = mald
+)
+```
+
+```{r lm-1-sum}
+summary(lm_1, correlation= FALSE)
+```
+
+```{r lm-1-pred}
+ggpredict(lm_1, terms = c("PhonLev", "IsWord")) %>%
+  plot()
+```
+
+Increase model complexity. Does it work?
+
+```{r lm-2}
+lm_2 <- lmer(
+  log(RT) ~
+    PhonLev +
+    IsWord +
+    PhonLev:IsWord +
+    (PhonLev + IsWord | Subject),
+  data = mald
+)
+```
+
+```{r lm-2-run}
+lm_2 <- lmer(
+  log(RT) ~
+    PhonLev +
+    IsWord +
+    PhonLev:IsWord +
+    (PhonLev + IsWord | Subject),
+  data = mald
+)
+```
+
+
+
+# A Bayesian linear model
+
+```{r brm-1-run}
+brm_1 <- brm(
+  RT ~
+    PhonLev +
+    IsWord +
+    PhonLev:IsWord +
+    (PhonLev + IsWord | Subject),
+  data = mald,
+  # Let's use a log-normal family for RT, 
+  # rather than log the RT values.
+  family = lognormal(),
+  # Technical stuff
+  backend = "cmdstanr",
+  cores = 4,
+  threads = threading(2),
+  file = "data/brm_1"
+)
+```
+
+
+```{r brm-1-sum}
+brm_1
+```
+
+```{r brm-1-cond}
+conditional_effects(brm_1, effects = "PhonLev:IsWord")
+```
+
+
+
+## Let's start small
+
+```{r brm-2-explain, eval=FALSE}
+brm_2 <- brm(
+  RT ~ IsWord,
+  data = mald,
+  
+  # Probability distribution
+  # of the OUTCOME
+  family = lognormal(),
+  
+  # TECHNICAL STUFF
+  # Use cmdstanr
+  backend = "cmdstanr"
+  # Save model output to file
+  file = "./data/rds/brm_2.rds",
+  # Number of chains
+  chains = 4, 
+  # Number of iterations per chain
+  iter = 2000,
+  # Number of cores to use
+  cores = 4
+)
+```
+
+
+
+- `formula`, `data` and `family` should be familiar.
+
+- `chains`: Number of MCMC chains to be run.
+
+- `iter`: Number of iterations per MCMC chain.
+
+- `cores`: Number of cores to use for running the MCMC chains.
+
+  - You can find out how many cores your laptop has with `parallel::detectCores()`
+
+
+```{r brm-2-sum}
+brm_2
+```
+
+
+```{r brm-2-plot}
+plot(brm_2)
+```
+
+
+## Get parameters (variables)
+
+To list all the names of the parameters in a model, use:
+
+```{r brm-2-vars}
+variables(brm_2)
+```
+
+
+## Get MCMC draws
+
+You can easily extract the MCMC draws:
+
+```{r brm-2-draws}
+brm_2 %>%
+  gather_draws(`b_.*`, regex = TRUE)
+```
+
+
+## Posterior distributions
+
+Now you can plot the draws using ggplot2.
+
+```{r brm-2-int-g}
+brm_2 %>%
+  gather_draws(b_Intercept) %>%
+  ggplot(aes(.value)) +
+  stat_halfeye(fill = "#214d65") +
+  scale_x_continuous(breaks = seq(6, 7, by = 0.01)) +
+  labs(title = "Intercept")
+```
+
+```{r brm-2-isword-g}
+brm_2 %>%
+  gather_draws(b_IsWordFALSE) %>%
+  ggplot(aes(.value)) +
+  stat_halfeye(fill = "#624B27") +
+  scale_x_continuous(breaks = seq(0, 1, by = 0.01)) +
+  labs(title = "Effect of IsWord = FALSE")
+```
+
+
+## MCMC chains diagnostics
+
+```{r brm-2-chain-1}
+as.array(brm_2) %>%
+  mcmc_trace("b_IsWordFALSE", np = nuts_params(brm_2))
+```
+
+```{r brm-2-diag}
+brm_2
+```
+
+## Posterior predictive checks
+
+```{r brm-2-pp}
+pp_check(brm_2, ndraws = 100)
+```
+
+
+# Interactions and group-level effects
+
+```{r brm-1-bis}
+brm_1 <- brm(
+  RT ~
+    PhonLev +
+    IsWord +
+    # Interaction
+    PhonLev:IsWord +
+    # Group-level effects
+    (PhonLev + IsWord | Subject),
+  data = mald,
+  family = lognormal(),
+  # Technical stuff
+  backend = "cmdstanr",
+  cores = 4,
+  threads = threading(2),
+  file = "data/rds/brm_1"
+)
+```
+
+```{r brm-1-bis-sum}
+brm_1
+```
+
+## Interactions
+
+```{r brm-1-bis-cond}
+conditional_effects(brm_1, effects = "PhonLev:IsWord")
+```
+
+```{r brm-1-bis-cond-2, eval=FALSE}
+conditional_effects(
+  brm_1, effects = "PhonLev:IsWord",
+  spaghetti = TRUE, ndraws = 100
+) %>%
+  plot(spaghetti_args = c(size = 2, alpha = 1))
+```
+
+```{r brm-1-bis-cond-3, echo=FALSE}
+conditional_effects(
+  brm_1, effects = "PhonLev:IsWord",
+  spaghetti = TRUE, ndraws = 100
+) %>%
+  plot(spaghetti_args = c(size = 2, alpha = 1))
+```
+
+## Group-level effects
+
+```{r shrunk}
+brm_1_shrunk <- brm_1 %>%
+  spread_draws(b_IsWordFALSE, b_PhonLev, r_Subject[Subject,term]) %>%
+  mean_qi() %>%
+  mutate(source = "meta-analysis")
+
+original <- mald %>%
+  group_by(Subject) %>%
+  mutate(
+    mean_RT = mean(log(RT)),
+    sd_RT = sd(log(RT)),
+    lower = mean_RT - 1.96 * sd_RT,
+    upper = mean_RT + 1.96 * sd_RT
+  )
+```
+
+```{r brm-1-shrunk-intercept}
+brm_1_shrunk %>%
+  filter(term == "Intercept") %>%
+  ggplot(aes(r_Subject, reorder(as.character(Subject), r_Subject))) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_point(size = 4) +
+  geom_errorbarh(aes(xmin = r_Subject.lower, xmax = r_Subject.upper)) +
+  geom_point(data = original, aes(mean_RT - mean(log(RT)), Subject), colour = "red", size = 3) +
+  labs(
+    title = "By-subject conditional mean for Intercept",
+    x = "Conditional mean",
+    y = "Subject",
+    caption = str_wrap("The red dots mark the by-subject mean log(RT) from the raw data.")
+  )
+```
+
+```{r brm-1-shrunk-isword}
+brm_1_shrunk %>%
+  filter(term == "IsWordFALSE") %>%
+  ggplot(aes(r_Subject, reorder(as.character(Subject), r_Subject))) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_point(size = 4) +
+  geom_errorbarh(aes(xmin = r_Subject.lower, xmax = r_Subject.upper)) +
+  labs(
+    title = "By-subject conditional mean for IsWord = FALSE",
+    x = "Conditional mean (log-odds)",
+    y = "Subject"
+  )
+```
+
