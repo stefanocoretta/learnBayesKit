@@ -135,9 +135,9 @@ brm_2 <- brm(
   
   # TECHNICAL STUFF
   # Use cmdstanr
-  backend = "cmdstanr"
+  backend = "cmdstanr",
   # Save model output to file
-  file = "./data/rds/brm_2.rds",
+  file = "./data/brm_2.rds",
   # Number of chains
   chains = 4, 
   # Number of iterations per chain
