@@ -23,6 +23,8 @@ library(cmdstanr)
 library(tidybayes)
 library(bayesplot)
 library(extraDistr)
+
+my_cores <- parallel::detectCores()
 ```
 
 # Read the data
