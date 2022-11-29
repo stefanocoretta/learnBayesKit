@@ -46,7 +46,7 @@ mald
 
 ```{r lm-1}
 lm_1 <- lmer(
-  log(RT) ~
+  RT ~
     PhonLev +
     IsWord +
     PhonLev:IsWord +
@@ -68,7 +68,7 @@ Increase model complexity. Does it work?
 
 ```{r lm-2}
 lm_2 <- lmer(
-  log(RT) ~
+  RT ~
     PhonLev +
     IsWord +
     PhonLev:IsWord +
@@ -79,7 +79,7 @@ lm_2 <- lmer(
 
 ```{r lm-2-run}
 lm_2 <- lmer(
-  log(RT) ~
+  RT ~
     PhonLev +
     IsWord +
     PhonLev:IsWord +
@@ -100,9 +100,7 @@ brm_1 <- brm(
     PhonLev:IsWord +
     (PhonLev + IsWord | Subject),
   data = mald,
-  # Let's use a log-normal family for RT, 
-  # rather than log the RT values.
-  family = lognormal(),
+  family = gaussian(),
   # Technical stuff
   backend = "cmdstanr",
   cores = 4,
@@ -131,7 +129,7 @@ brm_2 <- brm(
   
   # Probability distribution
   # of the OUTCOME
-  family = lognormal(),
+  family = gaussian(),
   
   # TECHNICAL STUFF
   # Use cmdstanr
@@ -242,7 +240,7 @@ brm_1 <- brm(
     # Group-level effects
     (PhonLev + IsWord | Subject),
   data = mald,
-  family = lognormal(),
+  family = gaussian(),
   # Technical stuff
   backend = "cmdstanr",
   cores = 4,
@@ -288,8 +286,8 @@ brm_1_shrunk <- brm_1 %>%
 original <- mald %>%
   group_by(Subject) %>%
   mutate(
-    mean_RT = mean(log(RT)),
-    sd_RT = sd(log(RT)),
+    mean_RT = mean(RT),
+    sd_RT = sd(RT),
     lower = mean_RT - 1.96 * sd_RT,
     upper = mean_RT + 1.96 * sd_RT
   )
@@ -302,12 +300,12 @@ brm_1_shrunk %>%
   geom_vline(xintercept = 0, linetype = "dashed") +
   geom_point(size = 4) +
   geom_errorbarh(aes(xmin = r_Subject.lower, xmax = r_Subject.upper)) +
-  geom_point(data = original, aes(mean_RT - mean(log(RT)), Subject), colour = "red", size = 3) +
+  geom_point(data = original, aes(mean_RT - mean(RT), Subject), colour = "red", size = 3) +
   labs(
     title = "By-subject conditional mean for Intercept",
     x = "Conditional mean",
     y = "Subject",
-    caption = str_wrap("The red dots mark the by-subject mean log(RT) from the raw data.")
+    caption = str_wrap("The red dots mark the by-subject mean RT from the raw data.")
   )
 ```
 
