@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Intro to Bayesian (Linear Models) for Speech and Language Scientists</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Stefano Coretta" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/tachyons/tachyons.min.css" rel="stylesheet" />
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+    <link rel="stylesheet" href="../custom.css" type="text/css" />
+    <link rel="stylesheet" href="../xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# Intro to Bayesian (Linear Models) for Speech and Language Scientists
+]
+.subtitle[
+## Part 2
+]
+.author[
+### Stefano Coretta
+]
+.date[
+### 2022/11/29
+]
+
+---
+
+
+
+
+
+
+
+# Bayesian belief update
+
+.center[
+![:scale 60%](../../img/prior-update.png)
+]
+
+???
+
+How do we ensure that prior knowledge is not lost?
+
+You've seen in the previous sessions that Bayesian analysis is about estimating the posterior probability distribution of a variable of interest.
+
+Roughly speaking, the posterior probability distribution is the combination of the prior belief and the evidence derived from the data.
+
+Prior and evidence are, of course, probability distributions.
+
+---
+
+# Example from Day 1
+
+[Massive Auditory Lexical Decision](https://aphl.artsrn.ualberta.ca/?page_id=827) (Tucker et al. 2019):
+
+- **MALD data set**: 521 subjects, RTs and accuracy.
+
+- Subset of MALD: 30 subjects, 100 observations each.
+
+--
+
+
+```r
+mald
+```
+
+```
+## # A tibble: 3,000 × 7
+##    Subject Item         IsWord PhonLev    RT ACC       RT_log
+##    &lt;chr&gt;   &lt;chr&gt;        &lt;fct&gt;    &lt;dbl&gt; &lt;int&gt; &lt;fct&gt;      &lt;dbl&gt;
+##  1 15345   nihnaxr      FALSE     5.84   945 correct     6.85
+##  2 15345   skaep        FALSE     6.03  1046 incorrect   6.95
+##  3 15345   grandparents TRUE     10.3    797 correct     6.68
+##  4 15345   sehs         FALSE     5.88  2134 correct     7.67
+##  5 15345   cousin       TRUE      5.78   597 correct     6.39
+##  6 15345   blowup       TRUE      6.03   716 correct     6.57
+##  7 15345   hhehrnzmaxn  FALSE     7.30  1985 correct     7.59
+##  8 15345   mantic       TRUE      6.21  1591 correct     7.37
+##  9 15345   notable      TRUE      6.82   620 correct     6.43
+## 10 15345   prowthihviht FALSE     7.68  1205 correct     7.09
+## # ℹ 2,990 more rows
+```
+
+
+---
+
+# Let's start small
+
+.f2[
+Which probability distribution we can expect RTs to have in a standard lexical decision task?
+]
+
+---
+
+# Distribution of RTs
+
+.f2[
+`$$\text{RT}_i \sim Normal(\mu, \sigma)$$`
+]
+
+???
+
+This formula tells us that `RT`s are distributed according to (`~`) a Gaussian distribution with mean `\(\mu\)` and standard deviation `\(\sigma\)`.
+
+--
+
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+
+Which values do `\(\mu\)` and `\(\sigma\)` have?
+
+--
+
+Pick a `\(\mu\)` and `\(\sigma\)`. (OK, but how?)
+
+---
+
+layout: true
+
+# The empirical rule
+
+---
+
+&lt;img src="index_files/figure-html/empirical-rule-1-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+
+&lt;img src="index_files/figure-html/empirical-rule-2-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+
+&lt;img src="index_files/figure-html/empirical-rule-3-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+&lt;img src="index_files/figure-html/empirical-rule-4-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+
+&lt;img src="index_files/figure-html/empirical-rule-5-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+???
+
+As a general rule, `\(\pm2\sigma\)` covers 95% of the Gaussian distribution, which means we are 95% confident that the value lies within that range.
+
+---
+
+layout: false
+
+# Distribution of RTs
+
+.f2[
+`$$\text{RT}_i \sim Normal(\mu, \sigma)$$`
+]
+
+
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+
+Pick a `\(\mu\)` and `\(\sigma\)`.
+
+Report them here: &lt;https://forms.gle/M7juHsxyv5Vbs7Gx7&gt;.
+
+---
+
+# Let's see what we got!
+
+&lt;img src="index_files/figure-html/rt-sheet-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Distribution of RTs
+
+.f2[
+`$$\text{RT}_i \sim Normal(\mu, \sigma)$$`
+`$$\mu = ...?$$`
+]
+
+???
+
+We do have an idea of what the mean RT could be like but we are not certain.
+
+When you are not certain, you make a list of values and their probability, i.e. a probability distribution!
+
+---
+
+# Prior belief as probability distributions
+
+.f2[
+`$$\text{RT}_i \sim Normal(\mu, \sigma)$$`
+`$$\mu \sim Normal(\mu_1, \sigma_1)$$`
+]
+
+???
+
+Usually, we assume the mean `\(\mu\)` to be a value taken from another Gaussian distribution (with its own mean and SD).
+
+This Gaussian distribution is the **prior probability distribution** (or simply prior) of the mean.
+
+---
+
+# Prior belief as probability distributions
+
+.f2[
+`$$\text{RT}_i \sim Normal(\mu, \sigma)$$`
+`$$\mu \sim Normal(\mu_1 = 0, \sigma_1)$$`
+]
+
+???
+
+We will talk about different types of priors later. For now it's sufficient to remember that a conservative approach (which is what we want to do) is to set `\(\mu_1\)` to 0.
+
+--
+
+&lt;br&gt;
+&lt;br&gt;
+
+**What about `\(\sigma_1\)`?**
+
+---
+
+# Prior belief as probability distributions
+
+.f2[
+`$$\text{RT}_i \sim Normal(\mu, \sigma)$$`
+`$$\mu \sim Normal(\mu_1 = 0, \sigma_1 = 1500)$$`
+]
+
+???
+
+Let's be generous and assume that the mean RT will definitely not be greater than 3 seconds. (This might seem like a very high number, but we will see how it can help estimation)
+
+`\(3000/2 = 1500\)` ms (remember, two times the SD), so we can set `\(\sigma_1 = 1500\)`.
+
+
+---
+
+# Seeing is believing
+
+&lt;img src="index_files/figure-html/mu1-prior-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+???
+
+Visualising priors is important, because it's easier to grasp their meaning when you can actually see the shape of the distribution.
+
+Are you wondering about the negative values? (RT cannot be negative!) I will tell more about this and how to "fix" it later.
+
+WARNING: The distribution that you see here **is not** the distribution of RTs! It's the prior distribution of the mean of that distribution.
+
+---
+
+# Prior belief as probability distributions
+
+.f2[
+`$$\text{RT}_i \sim Normal(\mu, \sigma)$$`
+`$$\mu \sim Normal(0, 1500)$$`
+]
+
+--
+
+.f6[
+We'll talk about `\(\sigma\)` in a second...
+]
+
+---
+
+# Distribution of RTs
+
+.f2[
+.center[
+`RT ~ 1, family = gaussian`
+]
+
+`$$\mu \sim Normal(0, 1500)$$`
+]
+
+--
+
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+
+How do we specify priors?
+
+???
+
+Before we move on onto specify priors, it is helpful to see how priors are stored in R for use with brms.
+
+---
+
+# Get the default priors
+
+
+
+```r
+get_prior(
+  RT ~ 1,
+  data = mald,
+  family = gaussian
+)
+```
+
+```
+##                     prior     class coef group resp dpar nlpar lb ub  source
+##  student_t(3, 952, 220.9) Intercept                                  default
+##    student_t(3, 0, 220.9)     sigma                             0    default
+```
+
+???
+
+You can get the default priors for the specified model with `get_prior()`.
+The important bits of the output are the `prior` and `class` columns.
+We will see their use in a second.
+
+---
+
+# Set your priors
+
+
+```r
+my_priors &lt;- c(
+  prior(...), # Intercept (i.e. mu)
+  prior(...)  # sigma
+)
+```
+
+---
+
+# Set your priors
+
+
+```r
+my_priors &lt;- c(
+  prior(normal(0, 1500), class = Intercept), # Intercept (i.e. mu)
+  prior(...)  # sigma
+)
+```
+
+---
+
+# What about `\(\sigma\)`?
+
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+
+
+.pull-left[
+`$$\text{RT}_i \sim Normal(\mu, \sigma)$$`
+`$$\mu \sim Normal(\mu_1 = 0, \sigma_1 = 1500)$$`
+`$$\sigma = ...?$$`
+]
+
+
+.pull-right[
+.center[
+`RT ~ 1, family = gaussian`
+
+`prior(normal(0, 1500), class = Intercept)`
+
+...?
+]
+]
+
+
+???
+
+Now, what about `\(\sigma\)`? (Be careful not to mix up `\(\sigma\)` and `\(\sigma_1\)`! This is `\(\sigma\)` from the first line, not `\(\sigma_1\)` from the second line).
+
+---
+
+# Prior for `\(\sigma\)`: Half Cauchy
+
+
+&lt;img src="index_files/figure-html/cauchy-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+???
+
+
+```r
+HDInterval::inverseCDF(
+  c(0.5, 0.75, 0.95),
+  phcauchy,
+  sigma = 50
+)
+```
+
+```
+## [1]  50.0000 120.7107 635.3102
+```
+
+```r
+HDInterval::inverseCDF(
+  c(0.5, 0.75, 0.95),
+  phcauchy,
+  sigma = 100
+)
+```
+
+```
+## [1]  100.0000  241.4214 1270.6205
+```
+
+---
+
+# Distribution of RTs
+
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+
+
+.pull-left[
+`$$\text{RT}_i \sim Normal(\mu, \sigma)$$`
+`$$\mu \sim Normal(\mu_1 = 0, \sigma_1 = 1500)$$`
+`$$\sigma = HalfCauchy(\mu_2 = 0, \sigma_2 = 100)$$`
+]
+
+
+.pull-right[
+.center[
+`RT ~ 1, family = gaussian`
+
+`prior(normal(0, 1500), class = Intercept)`
+
+`prior(cauchy(0, 100), class = sigma)`
+]
+]
+
+---
+
+layout: true
+
+# Prior Predictive Checks
+
+---
+
+
+```r
+my_priors &lt;- c(
+  prior(normal(0, 1500), class = Intercept), # Intercept (i.e. mu)
+  prior(cauchy(0, 100), class = sigma)  # sigma
+)
+
+rt_1_pp &lt;- brm(
+  RT ~ 1,
+  data = mald,
+  family = gaussian,
+  prior = my_priors,
+  sample_prior = "only",
+  cores = my_cores,
+  file = "./data/rds/rt_1_pp",
+  backend = "cmdstanr"
+)
+```
+
+---
+
+&lt;img src="index_files/figure-html/rt-1-pp-plot-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+layout: false
+
+# Let's run the model
+
+
+```r
+my_priors &lt;- c(
+  prior(normal(0, 1500), class = Intercept), # Intercept (i.e. mu)
+  prior(cauchy(0, 100), class = sigma)  # sigma
+)
+
+rt_1 &lt;- brm(
+  RT ~ 1,
+  data = mald,
+  family = gaussian,
+  prior = my_priors,
+  cores = my_cores,
+  file = "./data/rds/rt_1",
+  backend = "cmdstanr"
+)
+```
+
+
+---
+
+# Distribution of RTs
+
+
+```r
+rt_1
+```
+
+```
+##  Family: gaussian 
+##   Links: mu = identity; sigma = identity 
+## Formula: RT ~ 1 
+##    Data: mald (Number of observations: 3000) 
+##   Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+##          total post-warmup draws = 4000
+## 
+## Population-Level Effects: 
+##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept  1046.60      6.35  1034.07  1059.17 1.00     3569     2710
+## 
+## Family Specific Parameters: 
+##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sigma   347.49      4.52   338.70   356.37 1.00     3750     3114
+## 
+## Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).
+```
+
+---
+
+# Distribution of RTs
+
+&lt;img src="index_files/figure-html/rt-1-ppc-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+class: inverse center bottom
+background-image: url("../../img/chris-robert-unsplash.jpg")
+
+# BREAK
+
+---
+
+# PP check didn't look good...
+
+&lt;img src="index_files/figure-html/rt-1-ppc-2-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+???
+
+Why is that?
+
+Because our prior believes were a bit off...
+
+---
+
+# RT values are not Gaussian
+
+&lt;br&gt;
+
+Reaction times are not Gaussian (i.e. they are **not generated by a Gaussian process**).
+
+--
+
+There are several proposed distribution families for RTs.
+
+--
+
+The most notable:
+
+- **Log-normal** distribution.
+
+- **ExGaussian** or Exponential-Gaussian distribution.
+
+???
+
+Note that fitting a Gaussian distribution to log-transformed values is equivalent to fitting a log-normal distribution to non-transformed values.
+
+---
+
+class: center middle inverse
+
+.f1[How do you specify priors on the log scale?]
+
+
+---
+
+# Accuracy and phonemic distance
+
+
+```r
+mald
+```
+
+```
+## # A tibble: 3,000 × 7
+##    Subject Item         IsWord PhonLev    RT ACC       RT_log
+##    &lt;chr&gt;   &lt;chr&gt;        &lt;fct&gt;    &lt;dbl&gt; &lt;int&gt; &lt;fct&gt;      &lt;dbl&gt;
+##  1 15345   nihnaxr      FALSE     5.84   945 correct     6.85
+##  2 15345   skaep        FALSE     6.03  1046 incorrect   6.95
+##  3 15345   grandparents TRUE     10.3    797 correct     6.68
+##  4 15345   sehs         FALSE     5.88  2134 correct     7.67
+##  5 15345   cousin       TRUE      5.78   597 correct     6.39
+##  6 15345   blowup       TRUE      6.03   716 correct     6.57
+##  7 15345   hhehrnzmaxn  FALSE     7.30  1985 correct     7.59
+##  8 15345   mantic       TRUE      6.21  1591 correct     7.37
+##  9 15345   notable      TRUE      6.82   620 correct     6.43
+## 10 15345   prowthihviht FALSE     7.68  1205 correct     7.09
+## # ℹ 2,990 more rows
+```
+
+---
+
+layout: true
+
+# Accuracy and phonemic distance
+
+---
+
+&lt;img src="index_files/figure-html/acc-pd-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+
+&lt;img src="index_files/figure-html/acc-pd-2-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+
+&lt;img src="index_files/figure-html/acc-pd-3-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+layout: false
+
+# Distribution of accuracy data by phonemic distance
+
+.f3[
+`$$\text{ACC}_i \sim Bernoulli(p)$$`
+]
+
+--
+
+.f3[
+`$$logit(p) = \beta_0 + \beta_1\text{PL}_i$$`
+]
+
+--
+
+.f3[
+`$$\beta_0 \sim Normal(\mu_0, \sigma_0)$$`
+]
+
+--
+
+.f3[
+`$$\beta_1 \sim Normal(\mu_1, \sigma_1)$$`
+]
+
+--
+
+&lt;br&gt;
+
+But we are on the log scale now, because of the `logit(p)` part!
+
+--
+
+So priors have to be specified on the log scale.
+
+---
+
+# Log-odds and probabilities
+
+&lt;img src="index_files/figure-html/p-log-odds-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Distribution of accuracy data by phonemic distance
+
+.f2[
+`$$\text{ACC}_i \sim Bernoulli(p)$$`
+]
+
+.f2[
+`$$logit(p) = \beta_0 + \beta_1\text{PL}_i$$`
+]
+
+.f2[
+`$$\beta_0 \sim Normal(0, 1.5)$$`
+]
+
+.f2[
+`$$\beta_1 \sim Normal(0, 1)$$`
+]
+
+
+???
+
+Remember, `Normal(0, 1.5)` corresponds to 95% CrI [-3, +3]. Which in probability terms is approximately [5%, 95%].
+
+`Normal(0, 1)` corresponds to 95% CrI [-2, +2], which is approximately 95% CrI [0.15, 7.5] in odds.
+
+---
+
+# Accuracy and phonemic distance
+
+
+```r
+priors &lt;- c(
+  prior(normal(0, 1.5), class = Intercept), # beta_0
+  prior(normal(0, 1), class = b, coef = PhonLev) # beta_1
+)
+
+acc_1 &lt;- brm(
+  ACC ~ PhonLev,
+  data = mald,
+  family = bernoulli,
+  prior = priors,
+  cores = my_cores,
+  file = "./data/rds/acc_1",
+  backend = "cmdstanr"
+)
+```
+
+---
+
+# Accuracy and phonemic distance
+
+
+```r
+conditional_effects(acc_1, "PhonLev")
+```
+
+&lt;img src="index_files/figure-html/acc-1-cond-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Accuracy and phonemic distance by word type
+
+
+```r
+priors &lt;- c(
+  prior(normal(0, 1.5), class = Intercept), # beta_0
+  prior(normal(0, 1), class = b, coef = PhonLev), # beta_1
+  prior(normal(0, 1), class = b, coef = IsWordFALSE), # beta_2
+  prior(normal(0, 1), class = b, coef = `PhonLev:IsWordFALSE`) # beta_3
+)
+
+acc_2 &lt;- brm(
+  ACC ~ PhonLev * IsWord,
+  data = mald,
+  family = bernoulli,
+  prior = priors,
+  cores = my_cores,
+  file = "./data/rds/acc_2",
+  backend = "cmdstanr"
+)
+```
+
+---
+
+# Accuracy and phonemic distance by word type
+
+
+```r
+conditional_effects(acc_2, "PhonLev:IsWord")
+```
+
+&lt;img src="index_files/figure-html/acc-2-cond-1.png" height="400px" style="display: block; margin: auto;" /&gt;
+
+---
+
+class: inverse center bottom
+background-image: url("../../img/chris-robert-unsplash.jpg")
+
+# Questions?
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="../macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

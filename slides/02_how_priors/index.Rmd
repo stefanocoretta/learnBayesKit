@@ -1,0 +1,881 @@
+---
+title: "Intro to Bayesian (Linear Models) for Speech and Language Scientists"
+subtitle: "Part 2"
+author: "Stefano Coretta"
+institute: ""
+date: "2022/11/29"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css:
+      - default
+      - "../custom.css"
+      - "../xaringan-themer.css"
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      beforeInit: "../macros.js"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, out.height = "400px", dpi = 300,
+  fig.align = "center", fig.width = 7, fig.height = 5
+)
+knitr::opts_knit$set(root.dir = here::here())
+
+library(tidyverse)
+theme_set(theme_light())
+library(ggeffects)
+library(lme4)
+library(brms)
+library(tidybayes)
+library(bayesplot)
+library(extraDistr)
+library(googlesheets4)
+options(htmltools.dir.version = FALSE)
+xaringanExtra::use_xaringan_extra(c("panelset", "tachyons"))
+my_cores <- parallel::detectCores()
+```
+
+```{r mald, echo=FALSE}
+mald <- readRDS("./data/mald.rds")
+```
+
+# Bayesian belief update
+
+.center[
+![:scale 60%](../../img/prior-update.png)
+]
+
+???
+
+How do we ensure that prior knowledge is not lost?
+
+You've seen in the previous sessions that Bayesian analysis is about estimating the posterior probability distribution of a variable of interest.
+
+Roughly speaking, the posterior probability distribution is the combination of the prior belief and the evidence derived from the data.
+
+Prior and evidence are, of course, probability distributions.
+
+---
+
+# Example from Day 1
+
+[Massive Auditory Lexical Decision](https://aphl.artsrn.ualberta.ca/?page_id=827) (Tucker et al. 2019):
+
+- **MALD data set**: 521 subjects, RTs and accuracy.
+
+- Subset of MALD: 30 subjects, 100 observations each.
+
+--
+
+```{r mald-print}
+mald
+```
+
+
+---
+
+# Let's start small
+
+.f2[
+Which probability distribution we can expect RTs to have in a standard lexical decision task?
+]
+
+---
+
+# Distribution of RTs
+
+.f2[
+$$\text{RT}_i \sim Normal(\mu, \sigma)$$
+]
+
+???
+
+This formula tells us that `RT`s are distributed according to (`~`) a Gaussian distribution with mean $\mu$ and standard deviation $\sigma$.
+
+--
+
+<br>
+<br>
+<br>
+
+Which values do $\mu$ and $\sigma$ have?
+
+--
+
+Pick a $\mu$ and $\sigma$. (OK, but how?)
+
+---
+
+layout: true
+
+# The empirical rule
+
+---
+
+```{r empirical-rule-1, echo=FALSE}
+x <- seq(-4, 4, by = 0.01)
+y = dnorm(x, 0, 1)
+
+ger_1 <- ggplot() +
+  aes(x, y) +
+  geom_line(size = 2, colour = "#FFA70B") +
+  scale_x_continuous(breaks = c(-4:4), labels = c("", expression(paste(-3, sigma)), expression(paste(-2, sigma)), expression(paste(-1, sigma)), expression(paste(mu)), expression(paste(+1, sigma)), expression(paste(+2, sigma)), expression(paste(+3, sigma)), "")) +
+  ylim(0, 0.6) +
+  labs(
+    x = element_blank(), y = element_blank()
+  )
+ger_1
+```
+
+---
+
+```{r empirical-rule-2, echo=FALSE}
+ger_1 +
+  geom_ribbon(aes(x = ifelse(x >= -1 & x <= 1, x, NA), ymin = 0, ymax = y), alpha = 0.7, fill = "#8970FF") +
+  annotate(
+    "segment",
+    x = -1, xend = 1, y = 0.45, yend = 0.45,
+    arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm")),
+    size = 1
+  ) +
+  annotate("label", x = 0, y = 0.45, label = "68%") +
+  geom_line(size = 2, colour = "#FFA70B")
+```
+
+---
+
+```{r empirical-rule-3, echo=FALSE}
+ger_1 +
+  geom_ribbon(aes(x = ifelse(x >= -2 & x <= 2, x, NA), ymin = 0, ymax = y), alpha = 0.4, fill = "#8970FF") +
+annotate(
+    "segment",
+    x = -2, xend = 2, y = 0.5, yend = 0.5,
+    arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm")),
+    size = 1
+  ) +
+  annotate("label", x = 0, y = 0.50, label = "95%") +
+  geom_line(size = 2, colour = "#FFA70B")
+```
+
+
+---
+
+```{r empirical-rule-4, echo=FALSE}
+ger_1 +
+  geom_ribbon(aes(x = x, ymin = 0, ymax = y), alpha = 0.3, fill = "#8970FF") +
+  annotate(
+    "segment",
+    x = -3, xend = 3, y = 0.55, yend = 0.55,
+    arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm")),
+    size = 1
+  ) +
+  annotate("label", x = 0, y = 0.55, label = "99.7 ≈ 100%") +
+  geom_line(size = 2, colour = "#FFA70B")
+```
+
+---
+
+```{r empirical-rule-5, echo=FALSE}
+x <- seq(-4, 4, by = 0.01)
+y = dnorm(x, 0, 1)
+ggplot() +
+  aes(x, y) +
+  geom_ribbon(aes(x = x, ymin = 0, ymax = y), alpha = 0.3, fill = "#8970FF") +
+  geom_ribbon(aes(x = ifelse(x >= -2 & x <= 2, x, NA), ymin = 0, ymax = y), alpha = 0.4, fill = "#8970FF") +
+  geom_ribbon(aes(x = ifelse(x >= -1 & x <= 1, x, NA), ymin = 0, ymax = y), alpha = 0.7, fill = "#8970FF") +
+  geom_line(size = 2, colour = "#FFA70B") +
+  annotate(
+    "segment",
+    x = -1, xend = 1, y = 0.45, yend = 0.45,
+    arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm")),
+    size = 1
+  ) +
+  annotate("label", x = 0, y = 0.45, label = "68%") +
+  annotate(
+    "segment",
+    x = -2, xend = 2, y = 0.5, yend = 0.5,
+    arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm")),
+    size = 1
+  ) +
+  annotate("label", x = 0, y = 0.50, label = "95%") +
+  annotate(
+    "segment",
+    x = -3, xend = 3, y = 0.55, yend = 0.55,
+    arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm")),
+    size = 1
+  ) +
+  annotate("label", x = 0, y = 0.55, label = "99.7 ≈ 100%") +
+  scale_x_continuous(breaks = c(-4:4), labels = c("", expression(paste(-3, sigma)), expression(paste(-2, sigma)), expression(paste(-1, sigma)), expression(paste(mu)), expression(paste(+1, sigma)), expression(paste(+2, sigma)), expression(paste(+3, sigma)), "")) +
+  ylim(0, 0.6) +
+  labs(
+    x = element_blank(), y = element_blank()
+  )
+```
+
+???
+
+As a general rule, $\pm2\sigma$ covers 95% of the Gaussian distribution, which means we are 95% confident that the value lies within that range.
+
+---
+
+layout: false
+
+# Distribution of RTs
+
+.f2[
+$$\text{RT}_i \sim Normal(\mu, \sigma)$$
+]
+
+
+<br>
+<br>
+<br>
+
+Pick a $\mu$ and $\sigma$.
+
+Report them here: <https://forms.gle/M7juHsxyv5Vbs7Gx7>.
+
+---
+
+# Let's see what we got!
+
+```{r rt-sheet, echo=FALSE, message=FALSE, warning=FALSE}
+rt <- read_sheet("https://docs.google.com/spreadsheets/d/1TOJmee8wSKMMHoN9B_0oC3x33gIpvUovlQNqMV0S9vE/edit?usp=sharing", 1)
+colnames(rt) <- c("Timestamp", "mean_rt", "sd_rt")
+
+if (nrow(rt) == 0) {
+  rt <- tibble(Timestamp = c("a", "b"), mean_rt = c(1000, 2000), sd_rt = c(300, 450))
+}
+
+x <- seq(min(rt$mean_rt) - 3 * max(rt$sd_rt), max(rt$mean_rt) + 3 * max(rt$sd_rt))
+
+rt %>%
+  filter(mean_rt > 100, sd_rt > 50) %>%
+  mutate(
+    y = map2(mean_rt, sd_rt, ~dnorm(x, .x, .y)),
+    x = list(x)
+  ) %>%
+  unnest(cols = c(y, x)) %>%
+  ggplot(aes(x, y, group = as.character(paste(Timestamp, mean_rt, sd_rt)))) +
+  geom_line(size = 1, alpha = 0.5) +
+  theme(legend.position = "none") +
+  labs(
+    x = "RT (ms)", y = "Density",
+    title = "Proposed distributions of RTs"
+  ) +
+  scale_color_brewer(palette = "Paired") +
+  xlim(-500, 2500)
+```
+
+---
+
+# Distribution of RTs
+
+.f2[
+$$\text{RT}_i \sim Normal(\mu, \sigma)$$
+$$\mu = ...?$$
+]
+
+???
+
+We do have an idea of what the mean RT could be like but we are not certain.
+
+When you are not certain, you make a list of values and their probability, i.e. a probability distribution!
+
+---
+
+# Prior belief as probability distributions
+
+.f2[
+$$\text{RT}_i \sim Normal(\mu, \sigma)$$
+$$\mu \sim Normal(\mu_1, \sigma_1)$$
+]
+
+???
+
+Usually, we assume the mean $\mu$ to be a value taken from another Gaussian distribution (with its own mean and SD).
+
+This Gaussian distribution is the **prior probability distribution** (or simply prior) of the mean.
+
+---
+
+# Prior belief as probability distributions
+
+.f2[
+$$\text{RT}_i \sim Normal(\mu, \sigma)$$
+$$\mu \sim Normal(\mu_1 = 0, \sigma_1)$$
+]
+
+???
+
+We will talk about different types of priors later. For now it's sufficient to remember that a conservative approach (which is what we want to do) is to set $\mu_1$ to 0.
+
+--
+
+<br>
+<br>
+
+**What about $\sigma_1$?**
+
+---
+
+# Prior belief as probability distributions
+
+.f2[
+$$\text{RT}_i \sim Normal(\mu, \sigma)$$
+$$\mu \sim Normal(\mu_1 = 0, \sigma_1 = 1500)$$
+]
+
+???
+
+Let's be generous and assume that the mean RT will definitely not be greater than 3 seconds. (This might seem like a very high number, but we will see how it can help estimation)
+
+$3000/2 = 1500$ ms (remember, two times the SD), so we can set $\sigma_1 = 1500$.
+
+
+---
+
+# Seeing is believing
+
+```{r mu1-prior, echo=FALSE}
+x <- seq(-6000, 6000)
+ggplot() +
+  aes(x = x, y = dnorm(x, 0, 1500)) +
+  geom_line(size = 2, colour = "#8970FF") +
+  labs(
+    x = "Mean RT (ms)", y = "Density",
+    title = expression(paste("Prior for ", mu)),
+    subtitle = expression(paste(mu[1], "=0", ", ", sigma[1], "=1500"))
+  )
+```
+
+???
+
+Visualising priors is important, because it's easier to grasp their meaning when you can actually see the shape of the distribution.
+
+Are you wondering about the negative values? (RT cannot be negative!) I will tell more about this and how to "fix" it later.
+
+WARNING: The distribution that you see here **is not** the distribution of RTs! It's the prior distribution of the mean of that distribution.
+
+---
+
+# Prior belief as probability distributions
+
+.f2[
+$$\text{RT}_i \sim Normal(\mu, \sigma)$$
+$$\mu \sim Normal(0, 1500)$$
+]
+
+--
+
+.f6[
+We'll talk about $\sigma$ in a second...
+]
+
+---
+
+# Distribution of RTs
+
+.f2[
+.center[
+`RT ~ 1, family = gaussian`
+]
+
+$$\mu \sim Normal(0, 1500)$$
+]
+
+--
+
+<br>
+<br>
+<br>
+
+How do we specify priors?
+
+???
+
+Before we move on onto specify priors, it is helpful to see how priors are stored in R for use with brms.
+
+---
+
+# Get the default priors
+
+
+```{r get-prior}
+get_prior(
+  RT ~ 1,
+  data = mald,
+  family = gaussian
+)
+```
+
+???
+
+You can get the default priors for the specified model with `get_prior()`.
+The important bits of the output are the `prior` and `class` columns.
+We will see their use in a second.
+
+---
+
+# Set your priors
+
+```{r set-priors, eval=FALSE}
+my_priors <- c(
+  prior(...), # Intercept (i.e. mu)
+  prior(...)  # sigma
+)
+```
+
+---
+
+# Set your priors
+
+```{r set-priors-2, eval=FALSE}
+my_priors <- c(
+  prior(normal(0, 1500), class = Intercept), # Intercept (i.e. mu)
+  prior(...)  # sigma
+)
+```
+
+---
+
+# What about $\sigma$?
+
+<br>
+<br>
+<br>
+
+
+.pull-left[
+$$\text{RT}_i \sim Normal(\mu, \sigma)$$
+$$\mu \sim Normal(\mu_1 = 0, \sigma_1 = 1500)$$
+$$\sigma = ...?$$
+]
+
+
+.pull-right[
+.center[
+`RT ~ 1, family = gaussian`
+
+`prior(normal(0, 1500), class = Intercept)`
+
+...?
+]
+]
+
+
+???
+
+Now, what about $\sigma$? (Be careful not to mix up $\sigma$ and $\sigma_1$! This is $\sigma$ from the first line, not $\sigma_1$ from the second line).
+
+---
+
+# Prior for $\sigma$: Half Cauchy
+
+
+```{r cauchy, echo=FALSE}
+x <- seq(0, 1500, by = 0.1)
+y <- dhcauchy(x, sigma = 100)
+ggplot() +
+  aes(x, y) +
+  geom_line(size = 2) +
+  labs(
+    x = "RT standard deviation (ms)", y = "Density",
+    title = "Half Cauchy distribution",
+    subtitle = expression(paste(mu, "=0", ", ", sigma, "=100"))
+  )
+```
+
+???
+
+```{r hdi-hcauchy}
+HDInterval::inverseCDF(
+  c(0.5, 0.75, 0.95),
+  phcauchy,
+  sigma = 50
+)
+
+HDInterval::inverseCDF(
+  c(0.5, 0.75, 0.95),
+  phcauchy,
+  sigma = 100
+)
+```
+
+---
+
+# Distribution of RTs
+
+<br>
+<br>
+<br>
+
+
+.pull-left[
+$$\text{RT}_i \sim Normal(\mu, \sigma)$$
+$$\mu \sim Normal(\mu_1 = 0, \sigma_1 = 1500)$$
+$$\sigma = HalfCauchy(\mu_2 = 0, \sigma_2 = 100)$$
+]
+
+
+.pull-right[
+.center[
+`RT ~ 1, family = gaussian`
+
+`prior(normal(0, 1500), class = Intercept)`
+
+`prior(cauchy(0, 100), class = sigma)`
+]
+]
+
+---
+
+layout: true
+
+# Prior Predictive Checks
+
+---
+
+```{r rt-1-pp}
+my_priors <- c(
+  prior(normal(0, 1500), class = Intercept), # Intercept (i.e. mu)
+  prior(cauchy(0, 100), class = sigma)  # sigma
+)
+
+rt_1_pp <- brm(
+  RT ~ 1,
+  data = mald,
+  family = gaussian,
+  prior = my_priors,
+  sample_prior = "only",
+  cores = my_cores,
+  file = "./data/rds/rt_1_pp",
+  backend = "cmdstanr"
+)
+```
+
+---
+
+```{r rt-1-pp-plot, echo=FALSE, warning=FALSE}
+rt_1_pp_d <- rt_1_pp %>%
+  spread_draws(b_Intercept, sigma) %>%
+  slice_sample(n = 100)
+
+rt_1_pp_d %>%
+  mutate(
+    x = map2(b_Intercept, sigma, ~rnorm(1000, .x, .y)),
+  ) %>%
+  unnest(cols = x) %>%
+  ggplot(aes(x)) +
+  geom_density(size = 2, adjust = 10) +
+  geom_rug(alpha = 0.2) +
+  theme(legend.position = "none") +
+  labs(
+    x = "RT (ms)", y = "Density",
+    title = "Expected distribution of RTs"
+  ) +
+  xlim(-1e4, +1e4)
+```
+
+
+---
+
+layout: false
+
+# Let's run the model
+
+```{r rt-1}
+my_priors <- c(
+  prior(normal(0, 1500), class = Intercept), # Intercept (i.e. mu)
+  prior(cauchy(0, 100), class = sigma)  # sigma
+)
+
+rt_1 <- brm(
+  RT ~ 1,
+  data = mald,
+  family = gaussian,
+  prior = my_priors,
+  cores = my_cores,
+  file = "./data/rds/rt_1",
+  backend = "cmdstanr"
+)
+```
+
+
+---
+
+# Distribution of RTs
+
+```{r rt-1-sum}
+rt_1
+```
+
+---
+
+# Distribution of RTs
+
+```{r rt-1-ppc, echo=FALSE}
+pp_check(rt_1, ndraws = 50)
+```
+
+
+---
+
+class: inverse center bottom
+background-image: url("../../img/chris-robert-unsplash.jpg")
+
+# BREAK
+
+---
+
+# PP check didn't look good...
+
+```{r rt-1-ppc-2, echo=FALSE}
+pp_check(rt_1, ndraws = 50)
+```
+
+???
+
+Why is that?
+
+Because our prior believes were a bit off...
+
+---
+
+# RT values are not Gaussian
+
+<br>
+
+Reaction times are not Gaussian (i.e. they are **not generated by a Gaussian process**).
+
+--
+
+There are several proposed distribution families for RTs.
+
+--
+
+The most notable:
+
+- **Log-normal** distribution.
+
+- **ExGaussian** or Exponential-Gaussian distribution.
+
+???
+
+Note that fitting a Gaussian distribution to log-transformed values is equivalent to fitting a log-normal distribution to non-transformed values.
+
+---
+
+class: center middle inverse
+
+.f1[How do you specify priors on the log scale?]
+
+
+---
+
+# Accuracy and phonemic distance
+
+```{r mald-print-2}
+mald
+```
+
+---
+
+layout: true
+
+# Accuracy and phonemic distance
+
+---
+
+```{r acc-pd, echo=FALSE}
+mald %>%
+  ggplot(aes(ACC, PhonLev, colour = ACC)) +
+  geom_jitter(alpha = 0.7, width = 0.2)
+```
+
+---
+
+```{r acc-pd-2, echo=FALSE}
+mald %>%
+  ggplot(aes(PhonLev, fill = ACC)) +
+  geom_density(alpha = 0.35) +
+  geom_rug(alpha = 0.2)
+```
+
+---
+
+```{r acc-pd-3, echo=FALSE}
+mald %>%
+  ggplot(aes(PhonLev, fill = ACC)) +
+  geom_histogram(alpha = 0.9, bins = 50) +
+  facet_grid(ACC ~ .)
+```
+
+
+---
+
+layout: false
+
+# Distribution of accuracy data by phonemic distance
+
+.f3[
+$$\text{ACC}_i \sim Bernoulli(p)$$
+]
+
+--
+
+.f3[
+$$logit(p) = \beta_0 + \beta_1\text{PL}_i$$
+]
+
+--
+
+.f3[
+$$\beta_0 \sim Normal(\mu_0, \sigma_0)$$
+]
+
+--
+
+.f3[
+$$\beta_1 \sim Normal(\mu_1, \sigma_1)$$
+]
+
+--
+
+<br>
+
+But we are on the log scale now, because of the `logit(p)` part!
+
+--
+
+So priors have to be specified on the log scale.
+
+---
+
+# Log-odds and probabilities
+
+```{r p-log-odds, echo=FALSE}
+dots <- tibble(
+  p = seq(0.1, 0.9, by = 0.1),
+  log_odds = qlogis(p)
+)
+tibble(
+  p = seq(0, 1, by = 0.001),
+  log_odds = qlogis(p)
+) %>%
+  ggplot(aes(log_odds, p)) +
+  geom_hline(yintercept = 0.5, linetype = "dashed") +
+  geom_hline(yintercept = 0, colour = "#8856a7", size = 1) +
+  geom_hline(yintercept = 1, colour = "#8856a7", size = 1) +
+  geom_vline(xintercept = 0, alpha = 0.5) +
+  geom_line(size = 2) +
+  geom_point(data = dots, size = 4) +
+  scale_x_continuous(breaks = seq(-6, 6, by = 1), minor_breaks = NULL) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.1), minor_breaks = NULL) +
+  labs(
+    title = "Correspondence between log-odds and probabilities",
+    x = "log-odds",
+    y = "probability"
+  )
+```
+
+---
+
+# Distribution of accuracy data by phonemic distance
+
+.f2[
+$$\text{ACC}_i \sim Bernoulli(p)$$
+]
+
+.f2[
+$$logit(p) = \beta_0 + \beta_1\text{PL}_i$$
+]
+
+.f2[
+$$\beta_0 \sim Normal(0, 1.5)$$
+]
+
+.f2[
+$$\beta_1 \sim Normal(0, 1)$$
+]
+
+
+???
+
+Remember, `Normal(0, 1.5)` corresponds to 95% CrI [-3, +3]. Which in probability terms is approximately [5%, 95%].
+
+`Normal(0, 1)` corresponds to 95% CrI [-2, +2], which is approximately 95% CrI [0.15, 7.5] in odds.
+
+---
+
+# Accuracy and phonemic distance
+
+```{r acc-1}
+priors <- c(
+  prior(normal(0, 1.5), class = Intercept), # beta_0
+  prior(normal(0, 1), class = b, coef = PhonLev) # beta_1
+)
+
+acc_1 <- brm(
+  ACC ~ PhonLev,
+  data = mald,
+  family = bernoulli,
+  prior = priors,
+  cores = my_cores,
+  file = "./data/rds/acc_1",
+  backend = "cmdstanr"
+)
+```
+
+---
+
+# Accuracy and phonemic distance
+
+```{r acc-1-cond}
+conditional_effects(acc_1, "PhonLev")
+```
+
+
+---
+
+# Accuracy and phonemic distance by word type
+
+```{r acc-2}
+priors <- c(
+  prior(normal(0, 1.5), class = Intercept), # beta_0
+  prior(normal(0, 1), class = b, coef = PhonLev), # beta_1
+  prior(normal(0, 1), class = b, coef = IsWordFALSE), # beta_2
+  prior(normal(0, 1), class = b, coef = `PhonLev:IsWordFALSE`) # beta_3
+)
+
+acc_2 <- brm(
+  ACC ~ PhonLev * IsWord,
+  data = mald,
+  family = bernoulli,
+  prior = priors,
+  cores = my_cores,
+  file = "./data/rds/acc_2",
+  backend = "cmdstanr"
+)
+```
+
+---
+
+# Accuracy and phonemic distance by word type
+
+```{r acc-2-cond}
+conditional_effects(acc_2, "PhonLev:IsWord")
+```
+
+---
+
+class: inverse center bottom
+background-image: url("../../img/chris-robert-unsplash.jpg")
+
+# Questions?

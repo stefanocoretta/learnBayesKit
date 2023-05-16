@@ -1,0 +1,59 @@
+/* Custom CSS */
+
+.title-slide h1 {
+    text-align: left;
+    margin-left: 15px;
+}
+
+.title-slide h2 {
+    margin-top: -25px;
+    padding-bottom: -20px;
+    text-shadow: none;
+    font-weight: 300;
+    font-style: italic;
+    font-size: 21px;
+    text-align: left;
+    margin-left: 15px;
+}
+
+#stefano-coretta {
+    font-weight: bold;
+}
+
+.title-slide h3 {
+    text-shadow: none;
+    font-weight: 300;
+    font-size: 18px;
+    line-height: 3em;
+    text-align: left;
+    margin-left: 15px;
+    margin-bottom: -30px;
+}
+
+.remark-slide-content h1 {
+    font-size: 40px;
+}
+
+.remark-slide-content h2 {
+    font-size: 30px;
+}
+
+.huge .remark-code {
+  font-size: 200% !important;
+}
+
+.big .remark-code {
+  font-size: 70% !important;
+}
+
+.medium .remark-code {
+  font-size: 60% !important;
+}
+
+.tiny .remark-code {
+  font-size: 50% !important;
+}
+
+.hljs-operator {
+  color: red;
+}
