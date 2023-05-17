@@ -54,7 +54,7 @@ class: center, middle, inverse, title-slide
 
 &lt;br&gt;
 
-Note: The Starter Kit code might not be up to date.
+NOTE: Please, re-download the Starter Kit.
 
 ---
 
@@ -283,30 +283,30 @@ brm_1 &lt;- brm(
 ## Group-Level Effects: 
 ## ~Subject (Number of levels: 30) 
 ##                            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
-## sd(Intercept)                 96.43     31.38    43.35   167.77 1.00      862
-## sd(PhonLev)                    7.26      4.69     0.37    17.15 1.01      415
-## sd(IsWordFALSE)               97.93     20.23    63.53   145.65 1.00      953
-## cor(Intercept,PhonLev)        -0.40      0.44    -0.94     0.69 1.00     1333
-## cor(Intercept,IsWordFALSE)     0.53      0.26    -0.01     0.94 1.01      552
-## cor(PhonLev,IsWordFALSE)      -0.37      0.44    -0.94     0.63 1.01      481
+## sd(Intercept)                 98.96     32.80    44.73   173.67 1.00      973
+## sd(PhonLev)                    7.86      4.95     0.39    18.64 1.00      330
+## sd(IsWordFALSE)               97.82     19.02    63.89   139.05 1.00     1780
+## cor(Intercept,PhonLev)        -0.42      0.44    -0.94     0.68 1.00     1120
+## cor(Intercept,IsWordFALSE)     0.56      0.26    -0.01     0.97 1.01      291
+## cor(PhonLev,IsWordFALSE)      -0.40      0.42    -0.95     0.59 1.01      421
 ##                            Tail_ESS
-## sd(Intercept)                   544
-## sd(PhonLev)                     778
-## sd(IsWordFALSE)                 368
-## cor(Intercept,PhonLev)         1981
-## cor(Intercept,IsWordFALSE)      876
-## cor(PhonLev,IsWordFALSE)        880
+## sd(Intercept)                  1196
+## sd(PhonLev)                     521
+## sd(IsWordFALSE)                2415
+## cor(Intercept,PhonLev)         1376
+## cor(Intercept,IsWordFALSE)      192
+## cor(PhonLev,IsWordFALSE)        847
 ## 
 ## Population-Level Effects: 
 ##                     Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept             754.69     48.09   660.99   849.05 1.00     2054     2421
-## PhonLev                32.04      6.41    19.55    44.59 1.00     2220     2622
-## IsWordFALSE           209.91     67.12    78.75   342.71 1.00     1810     2368
-## PhonLev:IsWordFALSE   -11.34      8.94   -28.92     6.71 1.00     1890     2504
+## Intercept             755.16     49.02   654.38   849.31 1.00     1784     2855
+## PhonLev                32.00      6.50    19.60    45.19 1.00     1845     2895
+## IsWordFALSE           207.41     69.21    74.07   343.68 1.00     1897     1574
+## PhonLev:IsWordFALSE   -10.89      9.17   -28.88     6.99 1.00     1985     1422
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma   320.23      4.21   311.95   328.42 1.00     3355     1680
+## sigma   320.23      4.25   312.32   329.08 1.00     4599     1386
 ## 
 ## Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 ## and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -426,12 +426,12 @@ summary(brm_2)
 ## 
 ## Population-Level Effects: 
 ##             Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept     981.00      8.84   963.63   998.70 1.00     3940     3345
-## IsWordFALSE   133.29     12.63   108.89   157.58 1.00     4112     3332
+## Intercept     981.16      8.91   963.23   998.37 1.00     3759     2908
+## IsWordFALSE   132.93     12.71   107.86   158.04 1.00     3882     3123
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma   341.33      4.48   332.90   350.23 1.00     3787     2678
+## sigma   341.07      4.39   332.74   349.93 1.00     4058     2910
 ## 
 ## Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 ## and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -445,8 +445,8 @@ summary(brm_2)
 ```
 ## Population-Level Effects: 
 ##             Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept     981.00      8.84   963.63   998.70 1.00     3940     3345
-## IsWordFALSE   133.29     12.63   108.89   157.58 1.00     4112     3332
+## Intercept     981.16      8.91   963.23   998.37 1.00     3759     2908
+## IsWordFALSE   132.93     12.71   107.86   158.04 1.00     3882     3123
 ```
 
 * `Intercept`: There is a **95% probability** that (based on model and data) the mean RT when the word is real is **between 964 and 999 ms**.
@@ -497,16 +497,16 @@ brm_2_draws
 ```
 ## # A draws_df: 1000 iterations, 4 chains, and 5 variables
 ##    b_Intercept b_IsWordFALSE sigma lprior   lp__
-## 1          995           120   341    -13 -21762
-## 2         1007           125   341    -13 -21766
-## 3          965           139   341    -13 -21763
-## 4          991           124   341    -13 -21761
-## 5          975           149   345    -13 -21762
-## 6          987           117   336    -13 -21762
-## 7          987           126   345    -13 -21761
-## 8          974           150   341    -13 -21761
-## 9          980           139   334    -13 -21762
-## 10         981           136   335    -13 -21761
+## 1          985           121   343    -13 -21761
+## 2          978           148   333    -13 -21763
+## 3          987           116   339    -13 -21761
+## 4          992           116   344    -13 -21762
+## 5          989           122   344    -13 -21761
+## 6          977           140   339    -13 -21760
+## 7          983           122   346    -13 -21762
+## 8          969           147   338    -13 -21762
+## 9          986           129   339    -13 -21760
+## 10         981           136   341    -13 -21760
 ## # ... with 3990 more draws
 ## # ... hidden reserved variables {'.chain', '.iteration', '.draw'}
 ```
@@ -632,12 +632,12 @@ brm_2
 ## 
 ## Population-Level Effects: 
 ##             Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept     981.00      8.84   963.63   998.70 1.00     3940     3345
-## IsWordFALSE   133.29     12.63   108.89   157.58 1.00     4112     3332
+## Intercept     981.16      8.91   963.23   998.37 1.00     3759     2908
+## IsWordFALSE   132.93     12.71   107.86   158.04 1.00     3882     3123
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma   341.33      4.48   332.90   350.23 1.00     3787     2678
+## sigma   341.07      4.39   332.74   349.93 1.00     4058     2910
 ## 
 ## Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 ## and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -674,7 +674,7 @@ layout: true
 
 
 ```r
-brm_1 &lt;- brm(
+brm_1_bis &lt;- brm(
   RT ~
     PhonLev +
     IsWord +
@@ -683,12 +683,12 @@ brm_1 &lt;- brm(
     # Group-level effects
     (PhonLev + IsWord | Subject),
   data = mald,
-  family = lognormal(),
+  family = gaussian(),
   # Technical stuff
   backend = "cmdstanr",
   cores = 4,
   threads = threading(2),
-  file = "data/rds/brm_1"
+  file = "data/rds/brm_1_bis"
 )
 ```
 
@@ -707,30 +707,30 @@ brm_1 &lt;- brm(
 ## Group-Level Effects: 
 ## ~Subject (Number of levels: 30) 
 ##                            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
-## sd(Intercept)                 96.43     31.38    43.35   167.77 1.00      862
-## sd(PhonLev)                    7.26      4.69     0.37    17.15 1.01      415
-## sd(IsWordFALSE)               97.93     20.23    63.53   145.65 1.00      953
-## cor(Intercept,PhonLev)        -0.40      0.44    -0.94     0.69 1.00     1333
-## cor(Intercept,IsWordFALSE)     0.53      0.26    -0.01     0.94 1.01      552
-## cor(PhonLev,IsWordFALSE)      -0.37      0.44    -0.94     0.63 1.01      481
+## sd(Intercept)                 98.67     31.21    48.28   167.59 1.00     1124
+## sd(PhonLev)                    7.38      4.72     0.34    17.65 1.00      489
+## sd(IsWordFALSE)               97.62     19.84    63.89   141.96 1.01     1369
+## cor(Intercept,PhonLev)        -0.42      0.44    -0.94     0.69 1.00     1642
+## cor(Intercept,IsWordFALSE)     0.54      0.26    -0.05     0.93 1.00      673
+## cor(PhonLev,IsWordFALSE)      -0.39      0.42    -0.94     0.64 1.00      521
 ##                            Tail_ESS
-## sd(Intercept)                   544
-## sd(PhonLev)                     778
-## sd(IsWordFALSE)                 368
-## cor(Intercept,PhonLev)         1981
-## cor(Intercept,IsWordFALSE)      876
-## cor(PhonLev,IsWordFALSE)        880
+## sd(Intercept)                  1989
+## sd(PhonLev)                     979
+## sd(IsWordFALSE)                1697
+## cor(Intercept,PhonLev)         1912
+## cor(Intercept,IsWordFALSE)     1309
+## cor(PhonLev,IsWordFALSE)        841
 ## 
 ## Population-Level Effects: 
 ##                     Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept             754.69     48.09   660.99   849.05 1.00     2054     2421
-## PhonLev                32.04      6.41    19.55    44.59 1.00     2220     2622
-## IsWordFALSE           209.91     67.12    78.75   342.71 1.00     1810     2368
-## PhonLev:IsWordFALSE   -11.34      8.94   -28.92     6.71 1.00     1890     2504
+## Intercept             756.49     49.71   658.85   855.72 1.00     2244     1367
+## PhonLev                31.72      6.50    18.85    44.56 1.00     2429     1248
+## IsWordFALSE           204.02     66.69    71.69   334.30 1.00     2666     2529
+## PhonLev:IsWordFALSE   -10.61      8.91   -27.88     7.00 1.00     2703     2779
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma   320.23      4.21   311.95   328.42 1.00     3355     1680
+## sigma   320.22      4.18   312.39   328.50 1.00     5085     2618
 ## 
 ## Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 ## and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -749,7 +749,7 @@ layout: true
 
 
 ```r
-conditional_effects(brm_1, effects = "PhonLev:IsWord")
+conditional_effects(brm_1_bis, effects = "PhonLev:IsWord")
 ```
 
 &lt;img src="index_files/figure-html/brm-1-bis-cond-1.png" height="400px" style="display: block; margin: auto;" /&gt;
@@ -758,12 +758,12 @@ conditional_effects(brm_1, effects = "PhonLev:IsWord")
 
 
 ```
-## sd(Intercept)                   544
-## sd(PhonLev)                     778
-## sd(IsWordFALSE)                 368
-## cor(Intercept,PhonLev)         1981
-## cor(Intercept,IsWordFALSE)      876
-## cor(PhonLev,IsWordFALSE)        880
+## Population-Level Effects: 
+##                     Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept             756.49     49.71   658.85   855.72 1.00     2244     1367
+## PhonLev                31.72      6.50    18.85    44.56 1.00     2429     1248
+## IsWordFALSE           204.02     66.69    71.69   334.30 1.00     2666     2529
+## PhonLev:IsWordFALSE   -10.61      8.91   -27.88     7.00 1.00     2703     2779
 ```
 
 * `Intercept`: At 95% confidence, the mean RT when the word is real and the mean phone-level distance is 0 is between 661 and 849 ms.
@@ -779,7 +779,7 @@ conditional_effects(brm_1, effects = "PhonLev:IsWord")
 
 ```r
 conditional_effects(
-  brm_1, effects = "PhonLev:IsWord",
+  brm_1_bis, effects = "PhonLev:IsWord",
   spaghetti = TRUE, ndraws = 200
 ) %&gt;%
   plot(spaghetti_args = list(linewidth = 2))
@@ -805,12 +805,12 @@ layout: true
 ## Group-Level Effects: 
 ## ~Subject (Number of levels: 30) 
 ##                            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS
-## sd(Intercept)                 96.43     31.38    43.35   167.77 1.00      862
-## sd(PhonLev)                    7.26      4.69     0.37    17.15 1.01      415
-## sd(IsWordFALSE)               97.93     20.23    63.53   145.65 1.00      953
-## cor(Intercept,PhonLev)        -0.40      0.44    -0.94     0.69 1.00     1333
-## cor(Intercept,IsWordFALSE)     0.53      0.26    -0.01     0.94 1.01      552
-## cor(PhonLev,IsWordFALSE)      -0.37      0.44    -0.94     0.63 1.01      481
+## sd(Intercept)                 98.67     31.21    48.28   167.59 1.00     1124
+## sd(PhonLev)                    7.38      4.72     0.34    17.65 1.00      489
+## sd(IsWordFALSE)               97.62     19.84    63.89   141.96 1.01     1369
+## cor(Intercept,PhonLev)        -0.42      0.44    -0.94     0.69 1.00     1642
+## cor(Intercept,IsWordFALSE)     0.54      0.26    -0.05     0.93 1.00      673
+## cor(PhonLev,IsWordFALSE)      -0.39      0.42    -0.94     0.64 1.00      521
 ```
 
 --

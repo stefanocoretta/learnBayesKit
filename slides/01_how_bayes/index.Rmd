@@ -67,6 +67,9 @@ mald <- readRDS("./data/mald.rds")
 | 12.00 - 12.45 | **Diagnostics, interactions, group-level effects** |
 | 12.45 - 13.00 | Q&A                                            |
 
+<br>
+
+NOTE: Please, re-download the Starter Kit.
 
 ---
 
@@ -543,7 +546,7 @@ layout: true
 ---
 
 ```{r brm-1-bis}
-brm_1 <- brm(
+brm_1_bis <- brm(
   RT ~
     PhonLev +
     IsWord +
@@ -552,12 +555,12 @@ brm_1 <- brm(
     # Group-level effects
     (PhonLev + IsWord | Subject),
   data = mald,
-  family = lognormal(),
+  family = gaussian(),
   # Technical stuff
   backend = "cmdstanr",
   cores = 4,
   threads = threading(2),
-  file = "data/rds/brm_1"
+  file = "data/rds/brm_1_bis"
 )
 ```
 
@@ -565,7 +568,7 @@ brm_1 <- brm(
 
 .medium[
 ```{r brm-1-bis-sum, echo=FALSE, warning=FALSE}
-brm_1
+brm_1_bis
 ```
 ]
 
@@ -579,13 +582,13 @@ layout: true
 ---
 
 ```{r brm-1-bis-cond}
-conditional_effects(brm_1, effects = "PhonLev:IsWord")
+conditional_effects(brm_1_bis, effects = "PhonLev:IsWord")
 ```
 
 ---
 
 ```{r brm-1-bis-sum-2, warning=FALSE, echo=FALSE}
-cat(capture.output(summary(brm_1))[18:23], sep = "\n")
+cat(capture.output(summary(brm_1_bis))[25:30], sep = "\n")
 ```
 
 * `Intercept`: At 95% confidence, the mean RT when the word is real and the mean phone-level distance is 0 is between 661 and 849 ms.
@@ -600,7 +603,7 @@ cat(capture.output(summary(brm_1))[18:23], sep = "\n")
 
 ```{r brm-1-bis-cond-2, eval=FALSE}
 conditional_effects(
-  brm_1, effects = "PhonLev:IsWord",
+  brm_1_bis, effects = "PhonLev:IsWord",
   spaghetti = TRUE, ndraws = 200
 ) %>%
   plot(spaghetti_args = list(linewidth = 2))
@@ -610,7 +613,7 @@ conditional_effects(
 
 ```{r brm-1-bis-cond-3, echo=FALSE, out.height="500px", cache=TRUE}
 conditional_effects(
-  brm_1, effects = "PhonLev:IsWord",
+  brm_1_bis, effects = "PhonLev:IsWord",
   spaghetti = TRUE, ndraws = 200
 ) %>%
   plot(spaghetti_args = list(linewidth = 2))
@@ -628,7 +631,7 @@ layout: true
 **Group-level effects** are the Bayesian equivalent of frequentist random effects.
 
 ```{r brm-1-bis-sum-3, warning=FALSE, echo=FALSE}
-cat(capture.output(summary(brm_1))[8:16], sep = "\n")
+cat(capture.output(summary(brm_1_bis))[8:16], sep = "\n")
 ```
 
 --
@@ -642,7 +645,7 @@ As with the population-level effects, the interpretation of the group-level effe
 ---
 
 ```{r shrunk, echo=FALSE}
-brm_1_shrunk <- brm_1 %>%
+brm_1_shrunk <- brm_1_bis %>%
   spread_draws(b_IsWordFALSE, b_PhonLev, r_Subject[Subject,term]) %>%
   mean_qi() %>%
   mutate(source = "meta-analysis")
@@ -694,7 +697,7 @@ brm_1_shrunk %>%
 ---
 
 ```{r brm-1-shrunk-cor, echo=FALSE, out.height="500px"}
-as_draws_df(brm_1) %>%
+as_draws_df(brm_1_bis) %>%
   ggplot(aes(sd_Subject__Intercept, sd_Subject__IsWordFALSE)) +
   geom_point(size = 1, alpha = 0.2) +
   labs(
