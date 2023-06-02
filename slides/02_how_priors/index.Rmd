@@ -1,9 +1,9 @@
 ---
-title: "Intro to Bayesian (Linear Models) for Speech and Language Scientists"
+title: "Introduction to Bayesian Linear Models"
 subtitle: "Part 2"
 author: "Stefano Coretta"
-institute: ""
-date: "2022/11/29"
+institute: "University of Edinburgh"
+date: "7 June 2023"
 output:
   xaringan::moon_reader:
     lib_dir: libs
@@ -22,7 +22,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  echo = TRUE, out.height = "400px", dpi = 300,
+  echo = TRUE, out.height = "500px", dpi = 300,
   fig.align = "center", fig.width = 7, fig.height = 5
 )
 knitr::opts_knit$set(root.dir = here::here())
@@ -35,7 +35,9 @@ library(brms)
 library(tidybayes)
 library(bayesplot)
 library(extraDistr)
+library(truncdist)
 library(googlesheets4)
+gs4_deauth()
 options(htmltools.dir.version = FALSE)
 xaringanExtra::use_xaringan_extra(c("panelset", "tachyons"))
 my_cores <- parallel::detectCores()
@@ -63,7 +65,7 @@ Prior and evidence are, of course, probability distributions.
 
 ---
 
-# Example from Day 1
+# Example from Part 1
 
 [Massive Auditory Lexical Decision](https://aphl.artsrn.ualberta.ca/?page_id=827) (Tucker et al. 2019):
 
@@ -124,7 +126,7 @@ y = dnorm(x, 0, 1)
 
 ger_1 <- ggplot() +
   aes(x, y) +
-  geom_line(size = 2, colour = "#FFA70B") +
+  geom_line(linewidth = 2, colour = "#FFA70B") +
   scale_x_continuous(breaks = c(-4:4), labels = c("", expression(paste(-3, sigma)), expression(paste(-2, sigma)), expression(paste(-1, sigma)), expression(paste(mu)), expression(paste(+1, sigma)), expression(paste(+2, sigma)), expression(paste(+3, sigma)), "")) +
   ylim(0, 0.6) +
   labs(
@@ -142,10 +144,10 @@ ger_1 +
     "segment",
     x = -1, xend = 1, y = 0.45, yend = 0.45,
     arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm")),
-    size = 1
+    linewidth = 1
   ) +
   annotate("label", x = 0, y = 0.45, label = "68%") +
-  geom_line(size = 2, colour = "#FFA70B")
+  geom_line(linewidth = 2, colour = "#FFA70B")
 ```
 
 ---
@@ -157,10 +159,10 @@ annotate(
     "segment",
     x = -2, xend = 2, y = 0.5, yend = 0.5,
     arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm")),
-    size = 1
+    linewidth = 1
   ) +
   annotate("label", x = 0, y = 0.50, label = "95%") +
-  geom_line(size = 2, colour = "#FFA70B")
+  geom_line(linewidth = 2, colour = "#FFA70B")
 ```
 
 
@@ -173,10 +175,10 @@ ger_1 +
     "segment",
     x = -3, xend = 3, y = 0.55, yend = 0.55,
     arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm")),
-    size = 1
+    linewidth = 1
   ) +
   annotate("label", x = 0, y = 0.55, label = "99.7 ≈ 100%") +
-  geom_line(size = 2, colour = "#FFA70B")
+  geom_line(linewidth = 2, colour = "#FFA70B")
 ```
 
 ---
@@ -189,26 +191,26 @@ ggplot() +
   geom_ribbon(aes(x = x, ymin = 0, ymax = y), alpha = 0.3, fill = "#8970FF") +
   geom_ribbon(aes(x = ifelse(x >= -2 & x <= 2, x, NA), ymin = 0, ymax = y), alpha = 0.4, fill = "#8970FF") +
   geom_ribbon(aes(x = ifelse(x >= -1 & x <= 1, x, NA), ymin = 0, ymax = y), alpha = 0.7, fill = "#8970FF") +
-  geom_line(size = 2, colour = "#FFA70B") +
+  geom_line(linewidth = 2, colour = "#FFA70B") +
   annotate(
     "segment",
     x = -1, xend = 1, y = 0.45, yend = 0.45,
     arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm")),
-    size = 1
+    linewidth = 1
   ) +
   annotate("label", x = 0, y = 0.45, label = "68%") +
   annotate(
     "segment",
     x = -2, xend = 2, y = 0.5, yend = 0.5,
     arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm")),
-    size = 1
+    linewidth = 1
   ) +
   annotate("label", x = 0, y = 0.50, label = "95%") +
   annotate(
     "segment",
     x = -3, xend = 3, y = 0.55, yend = 0.55,
     arrow = arrow(ends = "both", angle = 90, length = unit(.2, "cm")),
-    size = 1
+    linewidth = 1
   ) +
   annotate("label", x = 0, y = 0.55, label = "99.7 ≈ 100%") +
   scale_x_continuous(breaks = c(-4:4), labels = c("", expression(paste(-3, sigma)), expression(paste(-2, sigma)), expression(paste(-1, sigma)), expression(paste(mu)), expression(paste(+1, sigma)), expression(paste(+2, sigma)), expression(paste(+3, sigma)), "")) +
@@ -309,34 +311,14 @@ This Gaussian distribution is the **prior probability distribution** (or simply 
 
 .f2[
 $$\text{RT}_i \sim Normal(\mu, \sigma)$$
-$$\mu \sim Normal(\mu_1 = 0, \sigma_1)$$
-]
-
-???
-
-We will talk about different types of priors later. For now it's sufficient to remember that a conservative approach (which is what we want to do) is to set $\mu_1$ to 0.
-
---
-
-<br>
-<br>
-
-**What about $\sigma_1$?**
-
----
-
-# Prior belief as probability distributions
-
-.f2[
-$$\text{RT}_i \sim Normal(\mu, \sigma)$$
-$$\mu \sim Normal(\mu_1 = 0, \sigma_1 = 1500)$$
+$$\mu \sim Normal(\mu_1 = 1500, 750)$$
 ]
 
 ???
 
 Let's be generous and assume that the mean RT will definitely not be greater than 3 seconds. (This might seem like a very high number, but we will see how it can help estimation)
 
-$3000/2 = 1500$ ms (remember, two times the SD), so we can set $\sigma_1 = 1500$.
+$(3000 - 1500) / 2 = 750$ ms (remember, two times the SD), so we can set $\sigma_1 = 750$.
 
 
 ---
@@ -344,14 +326,14 @@ $3000/2 = 1500$ ms (remember, two times the SD), so we can set $\sigma_1 = 1500$
 # Seeing is believing
 
 ```{r mu1-prior, echo=FALSE}
-x <- seq(-6000, 6000)
+x <- seq(-1500, 4500)
 ggplot() +
-  aes(x = x, y = dnorm(x, 0, 1500)) +
-  geom_line(size = 2, colour = "#8970FF") +
+  aes(x = x, y = dnorm(x, 1500, 750)) +
+  geom_line(linewidth = 2, colour = "#8970FF") +
   labs(
     x = "Mean RT (ms)", y = "Density",
     title = expression(paste("Prior for ", mu)),
-    subtitle = expression(paste(mu[1], "=0", ", ", sigma[1], "=1500"))
+    subtitle = expression(paste(mu[1], "=1500", ", ", sigma[1], "=750"))
   )
 ```
 
@@ -369,7 +351,7 @@ WARNING: The distribution that you see here **is not** the distribution of RTs! 
 
 .f2[
 $$\text{RT}_i \sim Normal(\mu, \sigma)$$
-$$\mu \sim Normal(0, 1500)$$
+$$\mu \sim Normal(1500, 750)$$
 ]
 
 --
@@ -387,7 +369,7 @@ We'll talk about $\sigma$ in a second...
 `RT ~ 1, family = gaussian`
 ]
 
-$$\mu \sim Normal(0, 1500)$$
+$$\mu \sim Normal(1500, 750)$$
 ]
 
 --
@@ -438,7 +420,7 @@ my_priors <- c(
 
 ```{r set-priors-2, eval=FALSE}
 my_priors <- c(
-  prior(normal(0, 1500), class = Intercept), # Intercept (i.e. mu)
+  prior(normal(1500, 750), class = Intercept), # Intercept (i.e. mu)
   prior(...)  # sigma
 )
 ```
@@ -463,7 +445,7 @@ $$\sigma = ...?$$
 .center[
 `RT ~ 1, family = gaussian`
 
-`prior(normal(0, 1500), class = Intercept)`
+`prior(normal(1500, 750), class = Intercept)`
 
 ...?
 ]
@@ -476,19 +458,19 @@ Now, what about $\sigma$? (Be careful not to mix up $\sigma$ and $\sigma_1$! Thi
 
 ---
 
-# Prior for $\sigma$: Half Cauchy
+# Prior for $\sigma$: Truncated Cauchy
 
 
 ```{r cauchy, echo=FALSE}
-x <- seq(0, 1500, by = 0.1)
-y <- dhcauchy(x, sigma = 100)
+x <- seq(0, 1000, by = 0.1)
+y <- dcauchy(x, location = 0, scale = 50)
 ggplot() +
   aes(x, y) +
   geom_line(size = 2) +
   labs(
     x = "RT standard deviation (ms)", y = "Density",
-    title = "Half Cauchy distribution",
-    subtitle = expression(paste(mu, "=0", ", ", sigma, "=100"))
+    title = "Truncated Cauchy distribution",
+    subtitle = expression(paste(mu, "=0", ", ", sigma, "=50"))
   )
 ```
 
@@ -497,14 +479,18 @@ ggplot() +
 ```{r hdi-hcauchy}
 HDInterval::inverseCDF(
   c(0.5, 0.75, 0.95),
-  phcauchy,
-  sigma = 50
+  ptrunc,
+  spec = "cauchy",
+  scale = 50,
+  a = 0
 )
 
 HDInterval::inverseCDF(
   c(0.5, 0.75, 0.95),
-  phcauchy,
-  sigma = 100
+  ptrunc,
+  spec = "cauchy",
+  scale = 100,
+  a = 0
 )
 ```
 
@@ -519,8 +505,8 @@ HDInterval::inverseCDF(
 
 .pull-left[
 $$\text{RT}_i \sim Normal(\mu, \sigma)$$
-$$\mu \sim Normal(\mu_1 = 0, \sigma_1 = 1500)$$
-$$\sigma = HalfCauchy(\mu_2 = 0, \sigma_2 = 100)$$
+$$\mu \sim Normal(\mu_1 = 1500, \sigma_1 = 750)$$
+$$\sigma = Cauchy(\mu_2 = 0, \sigma_2 = 500)$$
 ]
 
 
@@ -528,9 +514,9 @@ $$\sigma = HalfCauchy(\mu_2 = 0, \sigma_2 = 100)$$
 .center[
 `RT ~ 1, family = gaussian`
 
-`prior(normal(0, 1500), class = Intercept)`
+`prior(normal(1500, 750), class = Intercept)`
 
-`prior(cauchy(0, 100), class = sigma)`
+`prior(cauchy(0, 50), class = sigma)`
 ]
 ]
 
@@ -544,8 +530,8 @@ layout: true
 
 ```{r rt-1-pp}
 my_priors <- c(
-  prior(normal(0, 1500), class = Intercept), # Intercept (i.e. mu)
-  prior(cauchy(0, 100), class = sigma)  # sigma
+  prior(normal(1500, 750), class = Intercept), # Intercept (i.e. mu)
+  prior(cauchy(0, 50), class = sigma)  # sigma
 )
 
 rt_1_pp <- brm(
@@ -555,7 +541,7 @@ rt_1_pp <- brm(
   prior = my_priors,
   sample_prior = "only",
   cores = my_cores,
-  file = "./data/rds/rt_1_pp",
+  file = "./data/cache/rt_1_pp",
   backend = "cmdstanr"
 )
 ```
@@ -580,7 +566,7 @@ rt_1_pp_d %>%
     x = "RT (ms)", y = "Density",
     title = "Expected distribution of RTs"
   ) +
-  xlim(-1e4, +1e4)
+  xlim(-5e3, +1e4)
 ```
 
 
@@ -592,8 +578,8 @@ layout: false
 
 ```{r rt-1}
 my_priors <- c(
-  prior(normal(0, 1500), class = Intercept), # Intercept (i.e. mu)
-  prior(cauchy(0, 100), class = sigma)  # sigma
+  prior(normal(1500, 750), class = Intercept), # Intercept (i.e. mu)
+  prior(cauchy(0, 50), class = sigma)  # sigma
 )
 
 rt_1 <- brm(
@@ -602,7 +588,7 @@ rt_1 <- brm(
   family = gaussian,
   prior = my_priors,
   cores = my_cores,
-  file = "./data/rds/rt_1",
+  file = "./data/cache/rt_1",
   backend = "cmdstanr"
 )
 ```
@@ -644,7 +630,7 @@ pp_check(rt_1, ndraws = 50)
 
 Why is that?
 
-Because our prior believes were a bit off...
+Because our prior beliefs were a bit off...
 
 ---
 
@@ -828,7 +814,7 @@ acc_1 <- brm(
   family = bernoulli,
   prior = priors,
   cores = my_cores,
-  file = "./data/rds/acc_1",
+  file = "./data/cache/acc_1",
   backend = "cmdstanr"
 )
 ```
@@ -837,7 +823,7 @@ acc_1 <- brm(
 
 # Accuracy and phonemic distance
 
-```{r acc-1-cond}
+```{r acc-1-cond, echo=FALSE}
 conditional_effects(acc_1, "PhonLev")
 ```
 
@@ -860,7 +846,7 @@ acc_2 <- brm(
   family = bernoulli,
   prior = priors,
   cores = my_cores,
-  file = "./data/rds/acc_2",
+  file = "./data/cache/acc_2",
   backend = "cmdstanr"
 )
 ```
@@ -869,7 +855,7 @@ acc_2 <- brm(
 
 # Accuracy and phonemic distance by word type
 
-```{r acc-2-cond}
+```{r acc-2-cond, echo=FALSE}
 conditional_effects(acc_2, "PhonLev:IsWord")
 ```
 

@@ -1,5 +1,6 @@
 ---
-title: "Introduction to Bayesian (Linear) Models"
+title: "Introduction to Bayesian Linear Models"
+subtitle: "Part I"
 author: "Stefano Coretta"
 institute: "University of Edinburgh"
 date: "2023/05/16"
@@ -62,10 +63,13 @@ mald <- readRDS("./data/mald.rds")
 
 | Time          | Topic                                          |
 |---------------|------------------------------------------------|
-| 11.00 - 11.45 | **Model basics and plotting**                      |
-| 11.45 - 12.00 | Break                                          |
-| 12.00 - 12.45 | **Diagnostics, interactions, group-level effects** |
-| 12.45 - 13.00 | Q&A                                            |
+| 09.00 - 10.30 | **Introduction to Bayesian Linear Models**     |
+| 10.30 - 11.00 | Break                                          |
+| 11.00 - 12.30 | **Diagnostics, interactions, group-level effects** |
+| 12.30 - 14.30 | Lunch + Posters                                |
+| 14.30 - 16.00 | **Priors**                                     |
+| 16.00 - 16.30 | Break                                          |
+| 16.30 - 18.00 | Q&A/Consultations                              |
 
 <br>
 
@@ -259,7 +263,7 @@ brm_1 <- brm(
   backend = "cmdstanr",
   cores = 4,
   threads = threading(2),
-  file = "data/rds/brm_1"
+  file = "data/cache/brm_1"
 )
 ```
 
@@ -294,7 +298,7 @@ brm_2 <- brm(
   # Use cmdstanr
   backend = "cmdstanr",
   # Save model output to file
-  file = "./data/rds/brm_2.rds"
+  file = "./data/cache/brm_2.rds"
 )
 ```
 
@@ -338,7 +342,7 @@ brm_2 <- brm(
   # Use cmdstanr
   backend = "cmdstanr"
   # Save model output to file
-  file = "./data/rds/brm_2.rds",
+  file = "./data/cache/brm_2.rds",
   # Number of chains
   chains = 4, 
   # Number of iterations per chain
@@ -560,7 +564,7 @@ brm_1_bis <- brm(
   backend = "cmdstanr",
   cores = 4,
   threads = threading(2),
-  file = "data/rds/brm_1_bis"
+  file = "data/cache/brm_1_bis"
 )
 ```
 
