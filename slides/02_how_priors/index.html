@@ -4,7 +4,6 @@
     <title>Introduction to Bayesian Linear Models</title>
     <meta charset="utf-8" />
     <meta name="author" content="Stefano Coretta" />
-    <meta name="date" content="2023-06-07" />
     <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/tachyons/tachyons.min.css" rel="stylesheet" />
@@ -30,7 +29,7 @@ class: center, middle, inverse, title-slide
 ### University of Edinburgh
 ]
 .date[
-### 7 June 2023
+### 2024/02/22
 ]
 
 ---
@@ -446,8 +445,7 @@ rt_1_pp &lt;- brm(
   prior = my_priors,
   sample_prior = "only",
   cores = my_cores,
-  file = "./data/cache/rt_1_pp",
-  backend = "cmdstanr"
+  file = "./data/cache/rt_1_pp"
 )
 ```
 
@@ -475,8 +473,7 @@ rt_1 &lt;- brm(
   family = gaussian,
   prior = my_priors,
   cores = my_cores,
-  file = "./data/cache/rt_1",
-  backend = "cmdstanr"
+  file = "./data/cache/rt_1"
 )
 ```
 
@@ -500,11 +497,11 @@ rt_1
 ## 
 ## Population-Level Effects: 
 ##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## Intercept  1046.39      6.40  1033.75  1058.56 1.00     3673     2611
+## Intercept  1046.60      6.36  1034.11  1059.09 1.00     2979     2485
 ## 
 ## Family Specific Parameters: 
 ##       Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-## sigma   347.46      4.48   338.73   356.27 1.00     3807     2454
+## sigma   347.46      4.35   339.23   356.22 1.00     3719     2784
 ## 
 ## Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
 ## and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -701,8 +698,7 @@ acc_1 &lt;- brm(
   family = bernoulli,
   prior = priors,
   cores = my_cores,
-  file = "./data/cache/acc_1",
-  backend = "cmdstanr"
+  file = "./data/cache/acc_1"
 )
 ```
 
@@ -732,8 +728,7 @@ acc_2 &lt;- brm(
   family = bernoulli,
   prior = priors,
   cores = my_cores,
-  file = "./data/cache/acc_2",
-  backend = "cmdstanr"
+  file = "./data/cache/acc_2"
 )
 ```
 

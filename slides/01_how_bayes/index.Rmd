@@ -3,7 +3,7 @@ title: "Introduction to Bayesian Linear Models"
 subtitle: "Part I"
 author: "Stefano Coretta"
 institute: "University of Edinburgh"
-date: "2023/05/16"
+date: "2023/10/26"
 output:
   xaringan::moon_reader:
     lib_dir: libs
@@ -35,7 +35,6 @@ use_xaringan_extra(c("panelset", "tachyons", "freezeframe"))
 library(lme4)
 library(ggeffects)
 library(brms)
-library(cmdstanr)
 library(tidybayes)
 library(bayesplot)
 
@@ -57,25 +56,25 @@ style_mono_accent(
 mald <- readRDS("./data/mald.rds")
 ```
 
-## Plan
+<!-- ## Plan -->
 
-<br>
+<!-- <br> -->
 
-| Time          | Topic                                          |
-|---------------|------------------------------------------------|
-| 09.00 - 10.30 | **Introduction to Bayesian Linear Models**     |
-| 10.30 - 11.00 | Break                                          |
-| 11.00 - 12.30 | **Diagnostics, interactions, group-level effects** |
-| 12.30 - 14.30 | Lunch + Posters                                |
-| 14.30 - 16.00 | **Priors**                                     |
-| 16.00 - 16.30 | Break                                          |
-| 16.30 - 18.00 | Q&A/Consultations                              |
+<!-- | Time          | Topic                                          | -->
+<!-- |---------------|------------------------------------------------| -->
+<!-- | 09.00 - 10.30 | **Introduction to Bayesian Linear Models**     | -->
+<!-- | 10.30 - 11.00 | Break                                          | -->
+<!-- | 11.00 - 12.30 | **Diagnostics, interactions, group-level effects** | -->
+<!-- | 12.30 - 14.30 | Lunch + Posters                                | -->
+<!-- | 14.30 - 16.00 | **Priors**                                     | -->
+<!-- | 16.00 - 16.30 | Break                                          | -->
+<!-- | 16.30 - 18.00 | Q&A/Consultations                              | -->
 
-<br>
+<!-- <br> -->
 
-NOTE: Please, re-download the Starter Kit.
+<!-- NOTE: Please, re-download the Starter Kit. -->
 
----
+<!-- --- -->
 
 class: right
 
@@ -260,9 +259,7 @@ brm_1 <- brm(
   data = mald,
   family = gaussian(),
   # Technical stuff
-  backend = "cmdstanr",
   cores = 4,
-  threads = threading(2),
   file = "data/cache/brm_1"
 )
 ```
@@ -295,8 +292,6 @@ brm_2 <- brm(
     IsWord,
   data = mald,
   family = gaussian(),
-  # Use cmdstanr
-  backend = "cmdstanr",
   # Save model output to file
   file = "./data/cache/brm_2.rds"
 )
@@ -339,8 +334,6 @@ brm_2 <- brm(
   family = gaussian(),
   
   # TECHNICAL STUFF
-  # Use cmdstanr
-  backend = "cmdstanr"
   # Save model output to file
   file = "./data/cache/brm_2.rds",
   # Number of chains
@@ -561,9 +554,7 @@ brm_1_bis <- brm(
   data = mald,
   family = gaussian(),
   # Technical stuff
-  backend = "cmdstanr",
   cores = 4,
-  threads = threading(2),
   file = "data/cache/brm_1_bis"
 )
 ```

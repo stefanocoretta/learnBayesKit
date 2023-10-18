@@ -3,7 +3,7 @@ title: "Introduction to Bayesian Linear Models"
 subtitle: "Part 2"
 author: "Stefano Coretta"
 institute: "University of Edinburgh"
-date: "7 June 2023"
+date: "2024/02/22"
 output:
   xaringan::moon_reader:
     lib_dir: libs
@@ -541,8 +541,7 @@ rt_1_pp <- brm(
   prior = my_priors,
   sample_prior = "only",
   cores = my_cores,
-  file = "./data/cache/rt_1_pp",
-  backend = "cmdstanr"
+  file = "./data/cache/rt_1_pp"
 )
 ```
 
@@ -588,8 +587,7 @@ rt_1 <- brm(
   family = gaussian,
   prior = my_priors,
   cores = my_cores,
-  file = "./data/cache/rt_1",
-  backend = "cmdstanr"
+  file = "./data/cache/rt_1"
 )
 ```
 
@@ -814,8 +812,7 @@ acc_1 <- brm(
   family = bernoulli,
   prior = priors,
   cores = my_cores,
-  file = "./data/cache/acc_1",
-  backend = "cmdstanr"
+  file = "./data/cache/acc_1"
 )
 ```
 
@@ -846,8 +843,7 @@ acc_2 <- brm(
   family = bernoulli,
   prior = priors,
   cores = my_cores,
-  file = "./data/cache/acc_2",
-  backend = "cmdstanr"
+  file = "./data/cache/acc_2"
 )
 ```
 
